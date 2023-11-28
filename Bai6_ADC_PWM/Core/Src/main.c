@@ -114,7 +114,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
- lcd_Clear(BLACK);
+  lcd_Clear(BLACK);
   while (1)
   {
 	  while(!flag_timer2);
@@ -176,12 +176,12 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 void system_init(){
-	  timer_init();
-	  button_init();
-	  lcd_init();
-	  sensor_init();
-	  buzzer_init();
-	  setTimer2(50);
+	timer_init();
+	button_init();
+	lcd_init();
+	sensor_init();
+	buzzer_init();
+	setTimer2(50);
 }
 
 uint8_t count_led_debug = 0;
@@ -193,28 +193,28 @@ void test_LedDebug(){
 	}
 }
 
-uint8_t isButtonUp()
-{
-    if (button_count[3] == 1)
+uint8_t isButtonUp(){
+	if(button_count[3] == 1){
         return 1;
-    else
+	}else{
         return 0;
+	}
 }
 
-uint8_t isButtonDown()
-{
-    if (button_count[7] == 1)
+uint8_t isButtonDown(){
+    if(button_count[7] == 1){
         return 1;
-    else
+    }else{
         return 0;
+    }
 }
 
-uint8_t isButtonRight()
-{
-    if (button_count[11] == 1)
+uint8_t isButtonRight(){
+    if(button_count[11] == 1){
         return 1;
-    else
+    }else{
         return 0;
+    }
 }
 
 uint8_t count_adc = 0;
@@ -224,9 +224,9 @@ void test_Adc(){
 	if(count_adc == 0){
 		sensor_Read();
 		lcd_ShowStr(10, 100, "Voltage:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 100,sensor_GetVoltage(), 4, RED, BLACK, 16);
+		lcd_ShowFloatNum(130, 100, sensor_GetVoltage(), 4, RED, BLACK, 16);
 		lcd_ShowStr(10, 120, "Current:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 120,sensor_GetCurrent(), 4, RED, BLACK, 16);
+		lcd_ShowFloatNum(130, 120, sensor_GetCurrent(), 4, RED, BLACK, 16);
 		lcd_ShowStr(10, 140, "Light:", RED, BLACK, 16, 0);
 		lcd_ShowIntNum(130, 140, sensor_GetLight(), 4, RED, BLACK, 16);
 		lcd_ShowStr(10, 160, "Potentiometer:", RED, BLACK, 16, 0);
@@ -240,11 +240,9 @@ void test_Buzzer(){
 	if(isButtonUp()){
 		buzzer_SetVolume(50);
 	}
-
 	if(isButtonDown()){
 		buzzer_SetVolume(0);
 	}
-
 	if(isButtonRight()){
 		buzzer_SetVolume(25);
 	}

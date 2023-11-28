@@ -17,4 +17,3 @@ void button_init();
 void button_Scan();
 
 #endif /* INC_BUTTON_H_ */
-
