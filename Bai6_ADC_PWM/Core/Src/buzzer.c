@@ -5,7 +5,6 @@
  *      Author: HaHuyen
  */
 
-
 #include "buzzer.h"
 
 uint8_t duty_cycle = 0;

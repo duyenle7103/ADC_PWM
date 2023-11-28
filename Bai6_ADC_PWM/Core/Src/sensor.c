@@ -4,6 +4,7 @@
  *  Created on: Sep 26, 2023
  *      Author: HaHuyen
  */
+
 #include "sensor.h"
 
 uint16_t adc_receive[5];
@@ -35,5 +36,3 @@ float sensor_GetCurrent(){
 float sensor_GetTemperature(){
 	return ((float)adc_receive[4]*330)/(4095);
 }
-
-

@@ -248,7 +248,6 @@ void test_Buzzer(){
 	if(isButtonRight()){
 		buzzer_SetVolume(25);
 	}
-
 }
 /* USER CODE END 4 */
 
