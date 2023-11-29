@@ -7,8 +7,8 @@
 
 #include "software_timer.h"
 
-uint16_t flag_timer[N0_OF_TIMER] = {0, 0, 0, 0};
-uint16_t timer_counter[N0_OF_TIMER] = {0, 0, 0, 0};
+uint16_t flag_timer[N0_OF_TIMER] = {0, 0, 0, 0, 0};
+uint16_t timer_counter[N0_OF_TIMER] = {0, 0, 0, 0, 0};
 
 void timer_init(){
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -32,6 +32,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM2){
 		timerRun(LCD_TIMER);
 		timerRun(LED7SEG_TIMER);
+		timerRun(UPDATE_TIMER);
 		timerRun(BUZZER_TIMER);
+		timerRun(DIAGRAM_TIMER);
 	}
 }

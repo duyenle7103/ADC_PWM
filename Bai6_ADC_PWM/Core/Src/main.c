@@ -57,17 +57,19 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint16_t Point[19][2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void system_init();
-void led7_Update();
 void button_Update();
 void adc_Display();
-void buzzer_On();
+void led7_Update();
+void adc_Update();
+void buzzer_Sound(uint8_t _buzzer_status);
+void diagram_display();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,22 +118,41 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  lcd_Clear(WHITE);
   while (1)
   {
 	  if(flag_timer[LED7SEG_TIMER] == 1){
 		  setTimer(LED7SEG_PERIOD, LED7SEG_TIMER);
 		  led7_Scan();
-		  led7_SetColon(colon_status = !colon_status);
+		  led7_SetColon(colon_status = 1 - colon_status);
 	  }
 	  if(flag_timer[LCD_TIMER] == 1){
 		  setTimer(LCD_PERIOD, LCD_TIMER);
-		  led7_Update();
+		  button_Update();
 		  adc_Display();
+		  diagram_display();
 	  }
-	  if((flag_timer[BUZZER_TIMER] == 1) && (Humidity > 70)){
+	  if(flag_timer[UPDATE_TIMER] == 1){
+		  setTimer(UPDATE_PERIOD, UPDATE_TIMER);
+		  led7_Update();
+		  adc_Update();
+	  }
+	  if(flag_timer[BUZZER_TIMER] == 1){
 		  setTimer(BUZZER_PERIOD, BUZZER_TIMER);
-		  buzzer_On();
+		  if(Humidity > 70){
+			  buzzer_Sound(buzzer_status = 1 - buzzer_status);
+		  }else{
+			  buzzer_Sound(0);
+		  }
+	  }
+	  if(flag_timer[DIAGRAM_TIMER] == 1){
+		  setTimer(DIAGRAM_PERIOD, DIAGRAM_TIMER);
+		  lcd_Clear(WHITE);
+		  for(int i = 18; i > 0; i--){
+			  Point[i][0] = Point[i - 1][0] + 10;
+			  Point[i][1] = Point[i - 1][1];
+		  }
+		  Point[0][0] = 10;
+		  Point[0][1] = 300 - Power/2.0;
 	  }
     /* USER CODE END WHILE */
 
@@ -185,6 +206,13 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void point_init(){
+	for(int i = 0; i < 19; i++){
+		Point[i][0] = 10;
+		Point[i][1] = 300;
+	}
+}
+
 void system_init(){
 	timer_init();
 	ds3231_init();
@@ -193,17 +221,12 @@ void system_init(){
 	sensor_init();
 	buzzer_init();
 	led7_init();
+	point_init();
 	setTimer(LCD_PERIOD, LCD_TIMER);
 	setTimer(LED7SEG_PERIOD, LED7SEG_TIMER);
+	setTimer(UPDATE_PERIOD, UPDATE_TIMER);
 	setTimer(BUZZER_PERIOD, BUZZER_TIMER);
-}
-
-void led7_Update(){
-	ds3231_ReadTime();
-	led7_SetDigit(ds3231_hours/10, 0, 0);
-	led7_SetDigit(ds3231_hours%10, 1, 0);
-	led7_SetDigit(ds3231_min/10, 2, 0);
-	led7_SetDigit(ds3231_min%10, 3, 0);
+	setTimer(DIAGRAM_PERIOD, DIAGRAM_TIMER);
 }
 
 void button_Update(){
@@ -218,6 +241,35 @@ void button_Update(){
 	}
 }
 
+void adc_Display(){
+	lcd_ShowStr(10, 10, "Duty cycle:", RED, WHITE, 16, 0);
+	lcd_ShowIntNum(130, 10, current_duty_cycle, 2, RED, WHITE, 16);
+	lcd_ShowStr(200, 10, "(%)", RED, WHITE, 16, 0);
+
+	lcd_ShowStr(10, 30, "Power:", RED, WHITE, 16, 0);
+	lcd_ShowFloatNum(130, 30, Power, 5, RED, WHITE, 16);
+	lcd_ShowStr(200, 30, "(mW)", RED, WHITE, 16, 0);
+
+	lcd_ShowStr(10, 50, "Light:", RED, WHITE, 16, 0);
+	lcd_ShowStr(130, 50, Light_intensity, RED, WHITE, 16, 0);
+
+	lcd_ShowStr(10, 70, "Temperature:", RED, WHITE, 16, 0);
+	lcd_ShowFloatNum(130, 70, sensor_GetTemperature(), 4, RED, WHITE, 16);
+	lcd_ShowStr(200, 70, "(oC)", RED, WHITE, 16, 0);
+
+	lcd_ShowStr(10, 90, "Humidity:", RED, WHITE, 16, 0);
+	lcd_ShowIntNum(130, 90, Humidity, 2, RED, WHITE, 16);
+	lcd_ShowStr(200, 90, "(%)", RED, WHITE, 16, 0);
+}
+
+void led7_Update(){
+	ds3231_ReadTime();
+	led7_SetDigit(ds3231_hours/10, 0, 0);
+	led7_SetDigit(ds3231_hours%10, 1, 0);
+	led7_SetDigit(ds3231_min/10, 2, 0);
+	led7_SetDigit(ds3231_min%10, 3, 0);
+}
+
 void adc_Update(){
 	sensor_Read();
 	Power = sensor_GetCurrent()*sensor_GetVoltage();
@@ -227,26 +279,25 @@ void adc_Update(){
 	}else{
 		Light_intensity = "Strong";
 	}
-	Humidity = (sensor_GetPotentiometer()/4095)*100;
+	Humidity = (((float)sensor_GetPotentiometer())/4095.0)*100.0;
 }
 
-void adc_Display(){
-	button_Update();
-	adc_Update();
-	lcd_ShowStr(10, 10, "Duty cycle (%):", RED, WHITE, 16, 0);
-	lcd_ShowIntNum(130, 10, current_duty_cycle, 2, RED, WHITE, 16);
-	lcd_ShowStr(10, 30, "Power (mW):", RED, WHITE, 16, 0);
-	lcd_ShowFloatNum(130, 30, Power, 4, RED, WHITE, 16);
-	lcd_ShowStr(10, 50, "Light:", RED, WHITE, 16, 0);
-	lcd_ShowStr(130, 50, Light_intensity, RED, WHITE, 16, 0);
-	lcd_ShowStr(10, 70, "Temperature (oC):", RED, WHITE, 16, 0);
-	lcd_ShowFloatNum(130, 70, sensor_GetTemperature(), 4, RED, WHITE, 16);
-	lcd_ShowStr(10, 90, "Humidity (%):", RED, WHITE, 16, 0);
-	lcd_ShowIntNum(130, 90, Humidity, 2, RED, WHITE, 16);
+void buzzer_Sound(uint8_t _buzzer_status){
+	if(_buzzer_status == 0){
+		buzzer_SetVolume(0);
+	}else{
+		buzzer_SetVolume(current_duty_cycle);
+	}
 }
 
-void buzzer_On(){
-	buzzer_SetVolume(current_duty_cycle);
+void diagram_display(){
+	lcd_ShowStr(10, 180, "Power", BLACK, WHITE, 16, 0);
+	lcd_DrawLine(10, 200, 10, 300, BLACK);
+	lcd_ShowStr(200, 290, "Time", BLACK, WHITE, 16, 0);
+	lcd_DrawLine(10, 300, 190, 300, BLACK);
+	for(int i = 0; i < 18; i++){
+		lcd_DrawLine(Point[i][0], Point[i][1], Point[i + 1][0], Point[i + 1][1], BLACK);
+	}
 }
 /* USER CODE END 4 */
 

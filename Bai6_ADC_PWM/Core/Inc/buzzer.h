@@ -11,6 +11,7 @@
 #include "tim.h"
 
 extern uint8_t current_duty_cycle;
+extern uint8_t buzzer_status;
 
 void buzzer_init();
 void buzzer_SetVolume(uint8_t _duty_cycle);

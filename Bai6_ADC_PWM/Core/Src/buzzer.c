@@ -9,6 +9,7 @@
 
 uint8_t current_duty_cycle = 0;
 uint8_t duty_cycle = 0;
+uint8_t buzzer_status = 0;
 
 void buzzer_init(){
 	HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);

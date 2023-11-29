@@ -12,11 +12,13 @@
 
 #define TIMER_CYCLE 1 // 1 milisecond
 #define LED7SEG_PERIOD 5 // 5/1000 second
-#define LCD_PERIOD 1000 // 1000/1000 second
+#define LCD_PERIOD 5 // 5/1000 second
+#define UPDATE_PERIOD 1000 // 1000/1000 second
 #define BUZZER_PERIOD 1000 // 1000/1000 second
-#define N0_OF_TIMER 4 // Number of timer be used
+#define DIAGRAM_PERIOD 1000 // 15000/1000 second
+#define N0_OF_TIMER 5 // Number of timer be used
 
-enum timer_type{LCD_TIMER, LED7SEG_TIMER, BUZZER_TIMER};
+enum timer_type{LCD_TIMER, LED7SEG_TIMER, UPDATE_TIMER, BUZZER_TIMER, DIAGRAM_TIMER};
 
 extern uint16_t flag_timer[N0_OF_TIMER];
 
