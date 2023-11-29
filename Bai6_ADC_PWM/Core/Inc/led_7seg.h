@@ -10,6 +10,8 @@
 
 #include "spi.h"
 
+extern uint8_t colon_status;
+
 void led7_init();
 void led7_Scan();
 void led7_SetDigit(int num, int position, uint8_t show_dot);

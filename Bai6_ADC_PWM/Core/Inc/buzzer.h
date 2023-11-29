@@ -10,8 +10,9 @@
 
 #include "tim.h"
 
-void buzzer_init();
+extern uint8_t current_duty_cycle;
 
+void buzzer_init();
 void buzzer_SetVolume(uint8_t _duty_cycle);
 
 #endif /* INC_BUZZER_H_ */

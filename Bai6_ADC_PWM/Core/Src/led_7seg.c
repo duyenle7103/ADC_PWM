@@ -6,14 +6,15 @@
  */
 #include <led_7seg.h>
 
-uint8_t led7seg[4] = {0, 1, 2, 3}; //4 index
-uint8_t arrayOfNum[10] = {0x03, 0x9f, 0x25, 0x0d, 0x99, 0x49, 0x41, 0x1f, 0x01, 0x09};// 9 numbers
+uint8_t colon_status = 0;
+uint8_t led7seg[4] = {0, 1, 2, 3}; // 4 index
+uint8_t arrayOfNum[10] = {0x03, 0x9f, 0x25, 0x0d, 0x99, 0x49, 0x41, 0x1f, 0x01, 0x09}; // 9 numbers
 uint16_t spi_buffer = 0xffff;
 
 int led7_index = 0;
 
 void led7_init(){
-	  HAL_GPIO_WritePin(LD_LATCH_GPIO_Port, LD_LATCH_Pin, 1);
+	HAL_GPIO_WritePin(LD_LATCH_GPIO_Port, LD_LATCH_Pin, 1);
 }
 
 void led7_Scan(){
@@ -22,19 +23,19 @@ void led7_Scan(){
 	switch(led7_index){
 	case 0:
 		spi_buffer |= 0x00b0;
-		spi_buffer &= 0xffbf;//1011
+		spi_buffer &= 0xffbf; //1011
 		break;
 	case 1:
 		spi_buffer |= 0x00d0;
-		spi_buffer &= 0xffdf;//1101
+		spi_buffer &= 0xffdf; //1101
 		break;
 	case 2:
 		spi_buffer |= 0x00e0;
-		spi_buffer &= 0xffef;//1110
+		spi_buffer &= 0xffef; //1110
 		break;
 	case 3:
 		spi_buffer |= 0x0070;
-		spi_buffer &= 0xff7f;//0111
+		spi_buffer &= 0xff7f; //0111
 		break;
 	default:
 		break;
@@ -67,5 +68,3 @@ void led_Off(uint8_t index){
 		spi_buffer &= ~(1 << (index-6));
 	}
 }
-
-

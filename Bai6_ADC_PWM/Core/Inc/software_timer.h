@@ -10,9 +10,17 @@
 
 #include "tim.h"
 
-extern uint16_t flag_timer2;
+#define TIMER_CYCLE 1 // 1 milisecond
+#define LED7SEG_PERIOD 5 // 5/1000 second
+#define LCD_PERIOD 1000 // 1000/1000 second
+#define BUZZER_PERIOD 1000 // 1000/1000 second
+#define N0_OF_TIMER 4 // Number of timer be used
+
+enum timer_type{LCD_TIMER, LED7SEG_TIMER, BUZZER_TIMER};
+
+extern uint16_t flag_timer[N0_OF_TIMER];
 
 void timer_init();
-void setTimer2(uint16_t duration);
+void setTimer(uint16_t duration, uint16_t timer_type);
 
 #endif /* INC_SOFTWARE_TIMER_H_ */

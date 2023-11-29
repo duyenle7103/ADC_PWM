@@ -46,6 +46,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,9 +64,10 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void system_init();
-void test_LedDebug();
-void test_Buzzer();
-void test_Adc();
+void led7_Update();
+void button_Update();
+void adc_Display();
+void buzzer_On();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,12 +103,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_FSMC_Init();
   MX_I2C1_Init();
   MX_TIM13_Init();
-  MX_DMA_Init();
+  MX_TIM2_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   system_init();
@@ -114,15 +116,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  lcd_Clear(BLACK);
+  lcd_Clear(WHITE);
   while (1)
   {
-	  while(!flag_timer2);
-	  flag_timer2 = 0;
-	  button_Scan();
-	  test_LedDebug();
-	  test_Adc();
-	  test_Buzzer();
+	  if(flag_timer[LED7SEG_TIMER] == 1){
+		  setTimer(LED7SEG_PERIOD, LED7SEG_TIMER);
+		  led7_Scan();
+		  led7_SetColon(colon_status = !colon_status);
+	  }
+	  if(flag_timer[LCD_TIMER] == 1){
+		  setTimer(LCD_PERIOD, LCD_TIMER);
+		  led7_Update();
+		  adc_Display();
+	  }
+	  if((flag_timer[BUZZER_TIMER] == 1) && (Humidity > 70)){
+		  setTimer(BUZZER_PERIOD, BUZZER_TIMER);
+		  buzzer_On();
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -177,75 +187,66 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void system_init(){
 	timer_init();
+	ds3231_init();
 	button_init();
 	lcd_init();
 	sensor_init();
 	buzzer_init();
-	setTimer2(50);
+	led7_init();
+	setTimer(LCD_PERIOD, LCD_TIMER);
+	setTimer(LED7SEG_PERIOD, LED7SEG_TIMER);
+	setTimer(BUZZER_PERIOD, BUZZER_TIMER);
 }
 
-uint8_t count_led_debug = 0;
-
-void test_LedDebug(){
-	count_led_debug = (count_led_debug + 1)%20;
-	if(count_led_debug == 0){
-		HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
-	}
+void led7_Update(){
+	ds3231_ReadTime();
+	led7_SetDigit(ds3231_hours/10, 0, 0);
+	led7_SetDigit(ds3231_hours%10, 1, 0);
+	led7_SetDigit(ds3231_min/10, 2, 0);
+	led7_SetDigit(ds3231_min%10, 3, 0);
 }
 
-uint8_t isButtonUp(){
-	if(button_count[3] == 1){
-        return 1;
-	}else{
-        return 0;
-	}
-}
-
-uint8_t isButtonDown(){
-    if(button_count[7] == 1){
-        return 1;
-    }else{
-        return 0;
-    }
-}
-
-uint8_t isButtonRight(){
-    if(button_count[11] == 1){
-        return 1;
-    }else{
-        return 0;
-    }
-}
-
-uint8_t count_adc = 0;
-
-void test_Adc(){
-	count_adc = (count_adc + 1)%20;
-	if(count_adc == 0){
-		sensor_Read();
-		lcd_ShowStr(10, 100, "Voltage:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 100, sensor_GetVoltage(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 120, "Current:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 120, sensor_GetCurrent(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 140, "Light:", RED, BLACK, 16, 0);
-		lcd_ShowIntNum(130, 140, sensor_GetLight(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 160, "Potentiometer:", RED, BLACK, 16, 0);
-		lcd_ShowIntNum(130, 160, sensor_GetPotentiometer(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 180, "Temperature:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 180,sensor_GetTemperature(), 4, RED, BLACK, 16);
-	}
-}
-
-void test_Buzzer(){
+void button_Update(){
+	button_Scan();
 	if(isButtonUp()){
-		buzzer_SetVolume(50);
+		current_duty_cycle = (current_duty_cycle + 1)%100;
 	}
 	if(isButtonDown()){
-		buzzer_SetVolume(0);
+		if(current_duty_cycle > 0){
+			current_duty_cycle = (current_duty_cycle - 1)%100;
+		}
 	}
-	if(isButtonRight()){
-		buzzer_SetVolume(25);
+}
+
+void adc_Update(){
+	sensor_Read();
+	Power = sensor_GetCurrent()*sensor_GetVoltage();
+	Light = sensor_GetLight();
+	if(Light < 2048){
+		Light_intensity = "Weak";
+	}else{
+		Light_intensity = "Strong";
 	}
+	Humidity = (sensor_GetPotentiometer()/4095)*100;
+}
+
+void adc_Display(){
+	button_Update();
+	adc_Update();
+	lcd_ShowStr(10, 10, "Duty cycle (%):", RED, WHITE, 16, 0);
+	lcd_ShowIntNum(130, 10, current_duty_cycle, 2, RED, WHITE, 16);
+	lcd_ShowStr(10, 30, "Power (mW):", RED, WHITE, 16, 0);
+	lcd_ShowFloatNum(130, 30, Power, 4, RED, WHITE, 16);
+	lcd_ShowStr(10, 50, "Light:", RED, WHITE, 16, 0);
+	lcd_ShowStr(130, 50, Light_intensity, RED, WHITE, 16, 0);
+	lcd_ShowStr(10, 70, "Temperature (oC):", RED, WHITE, 16, 0);
+	lcd_ShowFloatNum(130, 70, sensor_GetTemperature(), 4, RED, WHITE, 16);
+	lcd_ShowStr(10, 90, "Humidity (%):", RED, WHITE, 16, 0);
+	lcd_ShowIntNum(130, 90, Humidity, 2, RED, WHITE, 16);
+}
+
+void buzzer_On(){
+	buzzer_SetVolume(current_duty_cycle);
 }
 /* USER CODE END 4 */
 

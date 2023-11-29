@@ -7,7 +7,7 @@
 
 #include "ds3231.h"
 
-#define DS3231_ADDRESS 0x68<<1
+#define DS3231_ADDRESS 0x68 << 1 // 0110 1000 << 1 == 0 1101 0000
 
 uint8_t ds3231_buffer[7];
 uint8_t ds3231_read_count = 0;
@@ -32,7 +32,7 @@ void ds3231_init(){
 
 void ds3231_Write(uint8_t address, uint8_t value){
 	uint8_t temp = DEC2BCD(value);
-	HAL_I2C_Mem_Write(&hi2c1, DS3231_ADDRESS, address, I2C_MEMADD_SIZE_8BIT, &temp, 1,10);
+	HAL_I2C_Mem_Write(&hi2c1, DS3231_ADDRESS, address, I2C_MEMADD_SIZE_8BIT, &temp, 1, 10);
 }
 
 void ds3231_ReadTime(){
